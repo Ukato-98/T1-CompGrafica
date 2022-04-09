@@ -259,15 +259,9 @@ intervalo = (int) (Max.y-Min.y)//len(EspacoDividido.TodasAsFaixas)
 
 
 
-
-
-
 for i in range(Mapa.getNVertices()):
     P1,P2 = Mapa.getAresta(i)
-    # if(i==0):
-    #     inicio = (int) (P1.y//intervalo)    
-    # else:
-    #     inicio = (int) (P1.y//intervalo)+1
+
     inicio = (int) (P1.y//intervalo)
     fim = (int) (P2.y//intervalo)
 
