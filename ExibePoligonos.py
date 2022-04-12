@@ -68,7 +68,7 @@ class ConjuntoDeFaixas:
 EspacoDividido = ConjuntoDeFaixas()
 angulo=0.0
 
-
+# ***********************************************************************************
 def ImprimeFaixas():
     for i in range(len(EspacoDividido.TodasAsFaixas)):
         print("Faixa:",i,":")
@@ -78,11 +78,34 @@ def ImprimeFaixas():
             print(f.getAresta(a)," ")
         print("\n")
 
+# ***********************************************************************************
+def GeraConvexHull():
+    #procura os 4 extremos
+    			# *C(-1,0)
+	# *D(0,-1)			*B(1,0)
+			# *A(0,1)
+    import sys
+    a,b,c,d = Ponto() # considera os valores mais baixos/altos para depois comparar e reescrever
+    # a - n importa, min y
+    a.y = sys.maxint # altera o valor se o pto em comparacao tiver y menor
+    # b - max x, n importa
+    b.x = sys.minint # altera o valor se o pto em comparacao tiver x maior
+    # c - n importa, max y
+    c.y = sys.minint
+    # d - min x, n importa
+    d.x = sys.maxint
+    for v in range(Mapa.getNVertices()):
+        p = Mapa.getVertice(v)
+        if (p.y < a.y) a = p
+        if (p.x > b.s) b = p
+        if (p.y > c.y) c = p
+        if (p.x < d.x) d = p
+    
+    #4 for
+    
 
 
-
-
-
+# ***********************************************************************************
 def DesenhaLinha (P1, P2):
     glBegin(GL_LINES)
     glVertex3f(P1.x,P1.y,P1.z)
