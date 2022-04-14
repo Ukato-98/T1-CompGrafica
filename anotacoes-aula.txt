@@ -1,0 +1,34 @@
+Convex Hull:
+
+feito a primeira vez que for tratar com o objeto
+Parte dos vértices do obj
+Localiza 4 extremos (baixo(A), dir(B), cima(C), esq(D)) - interessante escolher ordem (antihoraria, horaria)
+
+			*C(-1,0)
+	*D(0,-1)			*B(1,0)
+			*A(0,1)
+
+
+Partindo do pto mais de baixo(A) (ex) coloca uma linha horizontal nele, qm eh o próximo vertice dps dele q forma o convex hull.
+Linha horizonta eh vetor (0,1). Para cada pto partindo do (A) (faz isso p todos pontos) gera um vetor e calcula angulo com a horizontal. O vetor com menor angulo (usa produto escalar p ver isso) é o prox pto q vai fazer parte do convex hull.
+Produto escalar da o cosseno, qnt maior o cosseno menor o angulo (cos 0º = 1).
+Qnd encontra o prox extremo (B), muda um pouco o processo, invés de linha horizontal, faz uma linha vertical(vetor (1,0)) apontando p cima.
+Repete processo, partindo de B, ver angulo p todos outros vertices.
+Extremo de cima, vetor horizontal apontando p esq (-1,0)
+Extremo da esq, vetor vertical apontando p baixo (0,-1)
+Qnd chegar no A, encontrou convex Hull.
+
+
+pseudo cod
+prox = menorAng(p, v) p eh ponto atual, v eh vetor (horizontal/vertical)
+sequencia de 4 laços, cada um eh extremo, 
+	inicia em A, qnd devolveu B, para o laco e vai p prox
+a medida q vai devolvendo armazena em vetor
+
+ALTERNATIVA
+com produto vetorial, faz vetores p todos ptos, ql esta a esq, (z>0) dai descarta. Partindo de um pto de referencial, ql garante q tds os outros estão a esq. Faz parte aquele pto q estiver mais a dir. (se tem alguem q fica a dir nao serve)
+
+pseudo
+temPtoADir(ref, Vi) ref eh o pto de referencia, vi eh o vetor criado com o potno e ref
+
+----------------------
