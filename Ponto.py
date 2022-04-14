@@ -6,6 +6,12 @@
 # ************************************************
 
 """ Classe Ponto """
+# from typing import TypeAlias
+
+
+from typing import Tuple
+
+
 class Ponto:   
     def __init__(self, x=0,y=0,z=0):
         self.x = x
@@ -56,7 +62,7 @@ class Ponto:
 # int, valor do parâmetro no ponto de interseção (sobre a reta MN)       */
 #                                                                        */
 # ********************************************************************** */
-def intersec2d(k: Ponto, l: Ponto, m: Ponto, n: Ponto) -> (int, float, float):
+def intersec2d(k: Ponto, l: Ponto, m: Ponto, n: Ponto) -> Tuple[int, float, float]:
     det = (n.x - m.x) * (l.y - k.y)  -  (n.y - m.y) * (l.x - k.x)
 
     if (det == 0.0):

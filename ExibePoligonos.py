@@ -112,13 +112,11 @@ def display():
 
     glColor3f(1.0, 0.0, 0.0)
     
-    Esq = Ponto(0,0)
-    Dir = Ponto (-1,0)
 
     miny = (int) (Min.y)
     maxy = (int) (Max.y)
     intervalo = (int) (Max.y-Min.y)//len(EspacoDividido.TodasAsFaixas)
-
+    # desenha faixas
     for i in range(miny,maxy+1,intervalo):
         if(i==miny):
             glColor3f(0,0,1)
@@ -129,6 +127,8 @@ def display():
         Pfinal = Ponto(Max.x,i)
         DesenhaLinha(Pinicial,Pfinal)
     
+    Esq = Ponto(0,0)
+    Dir = Ponto (-1,0)
     #Dir.imprime("Dir:")
 
     # Calcula o ponto da esquerda
