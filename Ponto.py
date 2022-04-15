@@ -11,6 +11,8 @@
 
 from typing import Tuple
 
+from numpy import true_divide
+
 
 class Ponto:   
     def __init__(self, x=0,y=0,z=0):
@@ -18,6 +20,12 @@ class Ponto:
         self.y = y
         self.z = z
     
+    """ Comparar 2 objetos de uma mesma classe """
+    def __eq__(self, other):
+        if self.x == other.x and self.y == other.y and self.z == other.z:
+            return True
+        else: False
+
     """ Imprime os valores de cada eixo do ponto """
     # Faz a impressao usando sobrecarga de funcao
     # https://www.educative.io/edpresso/what-is-method-overloading-in-python
@@ -48,19 +56,30 @@ class Ponto:
 # **********************************************************************
 #    Calcula o produto escalar entre os vetores V1 e V2
 # **********************************************************************
-def ProdEscalar(v1: Ponto, v2: Ponto) -> double:
-{
+def ProdEscalar(v1: Ponto, v2: Ponto) -> float:
     return v1.x*v2.x + v1.y*v2.y+ v1.z*v2.z
-}
 
 def ProdVetorial (v1: Ponto, v2: Ponto) -> Ponto:
-{
     vresult = Ponto()
     vresult.x = v1.y * v2.z - (v1.z * v2.y)
     vresult.y = v1.z * v2.x - (v1.x * v2.z)
     vresult.z = v1.x * v2.y - (v1.y * v2.x)
     return vresult
-}
+
+import math
+def Modulo (v1: Ponto) -> float:
+    return math.sqrt(v1.x**2 + v1.y**2 + v1.z**2)
+
+def CalculaAngulo(v1: Ponto, v2: Ponto) -> float:
+    x = ProdEscalar(v1,v2) / (Modulo(v1)*Modulo(v2))
+    x = round(x,2)
+    return math.degrees(math.acos(x))
+
+# calculo eh ponto da seta - ponto da "base" do vetor
+# p1 eh base, p2 eh seta
+def CalculaVetor(p1: Ponto, p2: Ponto) -> Ponto:
+    return Ponto(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z)
+
 
 # ********************************************************************** */
 #                                                                        */

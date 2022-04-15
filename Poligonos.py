@@ -33,6 +33,7 @@ class Polygon:
         glEnd()
 
     def desenhaVertices(self):
+        glPointSize(5)
         glBegin(GL_POINTS)
         for V in self.Vertices:
             glVertex3f(V.x,V.y,V.z)

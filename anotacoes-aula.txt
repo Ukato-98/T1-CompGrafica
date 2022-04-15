@@ -10,7 +10,8 @@ Localiza 4 extremos (baixo(A), dir(B), cima(C), esq(D)) - interessante escolher 
 
 
 Partindo do pto mais de baixo(A) (ex) coloca uma linha horizontal nele, qm eh o próximo vertice dps dele q forma o convex hull.
-Linha horizonta eh vetor (0,1). Para cada pto partindo do (A) (faz isso p todos pontos) gera um vetor e calcula angulo com a horizontal. O vetor com menor angulo (usa produto escalar p ver isso) é o prox pto q vai fazer parte do convex hull.
+Linha horizontal eh vetor (0,1). Para cada pto partindo do (A) (faz isso p todos pontos) gera um vetor e calcula angulo com a horizontal. 
+O vetor com menor angulo (usa produto escalar p ver isso) é o prox pto q vai fazer parte do convex hull.
 Produto escalar da o cosseno, qnt maior o cosseno menor o angulo (cos 0º = 1).
 Qnd encontra o prox extremo (B), muda um pouco o processo, invés de linha horizontal, faz uma linha vertical(vetor (1,0)) apontando p cima.
 Repete processo, partindo de B, ver angulo p todos outros vertices.

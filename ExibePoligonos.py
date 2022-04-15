@@ -66,7 +66,6 @@ class ConjuntoDeFaixas:
     
 
 EspacoDividido = ConjuntoDeFaixas()
-angulo=0.0
 
 # ***********************************************************************************
 def ImprimeFaixas():
@@ -82,27 +81,65 @@ def ImprimeFaixas():
 def GeraConvexHull():
     #procura os 4 extremos
     			# *C(-1,0)
-	# *D(0,-1)			*B(1,0)
-			# *A(0,1)
+	# *D(0,-1)			*B(0,1)
+			# *A(1,0)
     import sys
-    a,b,c,d = Ponto() # considera os valores mais baixos/altos para depois comparar e reescrever
+    a = Ponto() # considera os valores mais baixos/altos para depois comparar e reescrever
+    b = Ponto()
+    c = Ponto()
+    d = Ponto()
     # a - n importa, min y
-    a.y = sys.maxint # altera o valor se o pto em comparacao tiver y menor
+    a.y = sys.maxsize # altera o valor se o pto em comparacao tiver y menor
     # b - max x, n importa
-    b.x = sys.minint # altera o valor se o pto em comparacao tiver x maior
+    b.x = -sys.maxsize -1 # altera o valor se o pto em comparacao tiver x maior
     # c - n importa, max y
-    c.y = sys.minint
+    c.y = -sys.maxsize -1
     # d - min x, n importa
-    d.x = sys.maxint
+    d.x = sys.maxsize
     for v in range(Mapa.getNVertices()):
         p = Mapa.getVertice(v)
-        if (p.y < a.y) a = p
-        if (p.x > b.s) b = p
-        if (p.y > c.y) c = p
-        if (p.x < d.x) d = p
+        if (p.y < a.y): a = p
+        if (p.x > b.x): b = p
+        if (p.y > c.y): c = p
+        if (p.x < d.x): d = p
+
+    # add vetices ao ConvexHull 
+    auxConvexHull(a, b, Ponto(1,0,0))
+    auxConvexHull(b, c, Ponto(0,1,0)) 
+    auxConvexHull(c, d, Ponto(-1,0,0))
+    auxConvexHull(d, a, Ponto(0,-1,0))
+
+# ***********************************************************************************
+# calcula o menor angulo entre a reta formada pelo pto inicial de ref (a,b,c,d) 
+# com os demais vetices do poligono e o vetor base 
+def auxConvexHull(ref, final, vetorBase):
+    while(not ref == final):
+        angulo = 360
+        ponto = Ponto()
+        for vertice in Mapa.Vertices:
+            if not vertice == ref and vertice not in ConvexHull.Vertices:
+                vetor = CalculaVetor(ref, vertice)
+                auxAngulo = CalculaAngulo(vetor, vetorBase)
+                if (auxAngulo < angulo):
+                    angulo = auxAngulo
+                    ponto = vertice
+        ref = ponto
+        ConvexHull.insereVertice(ref.x, ref.y, ref.z)    
+
+# ***********************************************************************************
+import random
+def GeraPontos(qtd):
+    file = open(f'Pontos_{qtd}.txt', 'w')
+    qtdDigitosX = len(str(Max.x))
+    qtdDigitosY = len(str(Max.y))
     
-    #4 for
-    
+    for i in range(qtd):
+        randomX = random.randint(0, int('9' *qtdDigitosX))
+        randomY = random.randint(0, int('9' *qtdDigitosY))
+
+        file.write(f'{randomX} {randomY}\n')
+
+    file.close() 
 
 
 # ***********************************************************************************
@@ -132,6 +169,10 @@ def display():
     glLoadIdentity()
     glColor3f(1.0, 1.0, 0.0)
     Mapa.desenhaPoligono()
+
+    glColor3f(0, 0, 1.0)
+    ConvexHull.desenhaVertices()
+    ConvexHull.desenhaPoligono()
 
     glColor3f(1.0, 0.0, 0.0)
     
@@ -249,6 +290,8 @@ def mouseMove(x: int, y: int):
 # Programa Principal
 # ***********************************************************************************
 
+GeraPontos(20)
+
 Min, Max = Mapa.LePontosDeArquivo("PoligonoDeTeste.txt")
 
 Min.x -= 1
@@ -270,7 +313,7 @@ glutMouseFunc(mouse)
 
 
 
-#GeraConvexHull();
+GeraConvexHull()
 
 EspacoDividido.CriaFaixas(10)
 P1 = Ponto()
