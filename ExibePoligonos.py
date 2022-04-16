@@ -19,6 +19,7 @@
 # ***********************************************************************************
 
 #from sys import ps1
+from typing import List
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
@@ -141,7 +142,39 @@ def GeraPontos(qtd):
 
     file.close() 
 
+# ***********************************************************************************
+def lePontos(filePath) -> List[Ponto]:
+    file = open(filePath, "r")
+    listaDePontos = []
+    for line in file:
+        values = line.split(' ')
+        ponto = Ponto(int(values[0]), int(values[1]), 0)
+        listaDePontos.append(ponto)
+    return listaDePontos
 
+def InterseccaoForcaBruta(listaDePontos):
+    for pontoDir in listaDePontos:
+        pontoEsq = pontoDir + Ponto(-1,0) * 100
+        contInterseccoes = 0
+        for n in range(Mapa.getNVertices()):
+            verticeInicial, verticeFinal = Mapa.getAresta(n)
+            interseccao = HaInterseccao(pontoDir, pontoEsq, verticeInicial, verticeFinal)
+            if (interseccao):
+                # interseccao no vertice: como percorre em sentido horário, a interseccao acontece no final da prim aresta. 
+                # Em caso do vertice ser o max/min local -> conta 2 interseccoes, uma em cada aresta (pq ele entrou e saiu, ou saiu e entrou)
+                # Nos demais vertices, que sao "retos" (fronteiras do poligono, se passou nesse vertice saiu/entrou), só deve contar uma interseccao para as 2 arestas,
+                #   entao, diminui 1 do contador quando encontrar a interseccao em uma aresta "reta"
+                if (pontoDir.y == verticeFinal.y):
+                    verticeInicialProx, verticeFinalProx = Mapa.getAresta((n+1)%Mapa.getNVertices())
+                    if (((verticeInicial.y < verticeFinal.y) and (verticeInicialProx.y < verticeFinalProx.y)) 
+                        or 
+                        ((verticeInicial.y > verticeFinal.y) and (verticeInicialProx.y > verticeFinalProx.y))):
+                        contInterseccoes -=1
+                   
+                contInterseccoes+=1
+        pontoDir.imprime("O ponto")
+        dentro = False if contInterseccoes%2 == 0 else True
+        print("esta dentro do poli?", dentro) 
 # ***********************************************************************************
 def DesenhaLinha (P1, P2):
     glBegin(GL_LINES)
@@ -315,6 +348,7 @@ glutMouseFunc(mouse)
 
 GeraConvexHull()
 
+# --------FAIXAS----------
 EspacoDividido.CriaFaixas(10)
 P1 = Ponto()
 P2 = Ponto()
@@ -322,8 +356,6 @@ P2 = Ponto()
 inicio = 0
 fim = 0
 intervalo = (int) (Max.y-Min.y)//len(EspacoDividido.TodasAsFaixas)
-
-
 
 for i in range(Mapa.getNVertices()):
     P1,P2 = Mapa.getAresta(i)
@@ -341,6 +373,11 @@ for i in range(Mapa.getNVertices()):
         print("Aresta",i,"cadastrada na Faixa",j)
 
 ImprimeFaixas()
+# ------------------
+
+listaP = lePontos("p_teste.txt")
+InterseccaoForcaBruta(listaP)
+
 
 try:
     glutMainLoop()
