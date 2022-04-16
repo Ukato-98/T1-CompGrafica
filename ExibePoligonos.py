@@ -38,10 +38,10 @@ PontoClicado = Ponto()
 class Faixa:
     
     def __init__(self):
-        self.ArestasNaFaixa = []
+        self.ArestasNaFaixa = [] # vetor com os ids das arestas que estao na faixa
     
     def CadastraAresta(self, a):
-        self.ArestasNaFaixa.append(a)
+        self.ArestasNaFaixa.append(a) #add um id
     
     def getNroDeArestas(self):
         return len(self.ArestasNaFaixa)
@@ -54,6 +54,13 @@ class ConjuntoDeFaixas:
 
     def __init__(self):
         self.TodasAsFaixas =[]
+        self.intervalo = 0
+
+    def SetIntervalo(self, intervalo):
+        self.intervalo = intervalo 
+
+    def GetIntervalo(self):
+        return self.intervalo
 
     def CadastraArestaNaFaixa(self, f, a):
         self.TodasAsFaixas[f].CadastraAresta(a)
@@ -176,6 +183,7 @@ def InterseccaoForcaBruta(listaDePontos):
         pontoDir.imprime("O ponto")
         dentro = False if contInterseccoes%2 == 0 else True
         print("esta dentro do poli?", dentro) 
+        print("quantidade de interseccoes: ", contInterseccoes)
 # ***********************************************************************************
 def InclusaoEmConvexo(listaDePontos):
     # OBS: a ordem das arestas no convex hull esta em sentido anti horario (do Mapa esta em sentido horario)
@@ -193,7 +201,34 @@ def InclusaoEmConvexo(listaDePontos):
         ponto.imprime("O ponto")
         print("esta dentro do convexhull?", dentro)
 
-
+# ***********************************************************************************
+def InclusaoFaixaPorForcaBruta(listaDePontos):
+    for ponto in listaDePontos:
+        pontoEsq = ponto+ Ponto(-1,0) * 100
+        numFaixa = (ponto.y // EspacoDividido.intervalo) +1
+        print("Faixa: ", numFaixa)
+        contInterseccoes = 0
+        for numAresta in EspacoDividido.getFaixa(numFaixa).ArestasNaFaixa:
+            # print("Aresta: ", numAresta)
+            verticeInicial, verticeFinal = Mapa.getAresta(numAresta)
+            interseccao = HaInterseccao(ponto, pontoEsq, verticeInicial, verticeFinal)
+            if (interseccao):
+                # interseccao no vertice: como percorre em sentido horário, a interseccao acontece no final da prim aresta. 
+                # Em caso do vertice ser o max/min local -> conta 2 interseccoes, uma em cada aresta (pq ele entrou e saiu, ou saiu e entrou)
+                # Nos demais vertices, que sao "retos" (fronteiras do poligono, se passou nesse vertice saiu/entrou), só deve contar uma interseccao para as 2 arestas,
+                #   entao, diminui 1 do contador quando encontrar a interseccao em uma aresta "reta"
+                if (ponto.y == verticeFinal.y):
+                    verticeInicialProx, verticeFinalProx = Mapa.getAresta((numAresta+1)%Mapa.getNVertices())
+                    if (((verticeInicial.y < verticeFinal.y) and (verticeInicialProx.y < verticeFinalProx.y)) 
+                        or 
+                        ((verticeInicial.y > verticeFinal.y) and (verticeInicialProx.y > verticeFinalProx.y))):
+                        contInterseccoes -=1
+                   
+                contInterseccoes+=1           
+        ponto.imprime("O ponto")
+        dentro = False if contInterseccoes%2 == 0 else True
+        print("esta dentro do poli?", dentro) 
+        # print("quantidade de interseccoes: ", contInterseccoes)
 
 # ***********************************************************************************
 def DesenhaLinha (P1, P2):
@@ -376,6 +411,7 @@ P2 = Ponto()
 inicio = 0
 fim = 0
 intervalo = (int) (Max.y-Min.y)//len(EspacoDividido.TodasAsFaixas)
+EspacoDividido.SetIntervalo(intervalo)
 
 for i in range(Mapa.getNVertices()):
     P1,P2 = Mapa.getAresta(i)
@@ -398,7 +434,7 @@ ImprimeFaixas()
 listaP = lePontos("p_teste.txt")
 InterseccaoForcaBruta(listaP)
 InclusaoEmConvexo(listaP)
-
+InclusaoFaixaPorForcaBruta(listaP)
 
 try:
     glutMainLoop()
