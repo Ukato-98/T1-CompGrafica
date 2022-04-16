@@ -152,6 +152,7 @@ def lePontos(filePath) -> List[Ponto]:
         listaDePontos.append(ponto)
     return listaDePontos
 
+# ***********************************************************************************
 def InterseccaoForcaBruta(listaDePontos):
     for pontoDir in listaDePontos:
         pontoEsq = pontoDir + Ponto(-1,0) * 100
@@ -175,6 +176,25 @@ def InterseccaoForcaBruta(listaDePontos):
         pontoDir.imprime("O ponto")
         dentro = False if contInterseccoes%2 == 0 else True
         print("esta dentro do poli?", dentro) 
+# ***********************************************************************************
+def InclusaoEmConvexo(listaDePontos):
+    # OBS: a ordem das arestas no convex hull esta em sentido anti horario (do Mapa esta em sentido horario)
+    # por estar em sentido anti-horario, quando percorremos o convexhull pelas arestas, consideramos que pontos a direita estao fora do poligono
+    for ponto in listaDePontos:
+        dentro = True
+        for n in range(ConvexHull.getNVertices()):
+            verticeInicial, verticeFinal = ConvexHull.getAresta(n)
+            vetorCH = CalculaVetor(verticeInicial, verticeFinal)
+            vetorPonto = CalculaVetor(verticeInicial, ponto)
+            vetorResultante = ProdVetorial(vetorCH, vetorPonto)
+            if vetorResultante.z < 0:
+                dentro = False
+                break
+        ponto.imprime("O ponto")
+        print("esta dentro do convexhull?", dentro)
+
+
+
 # ***********************************************************************************
 def DesenhaLinha (P1, P2):
     glBegin(GL_LINES)
@@ -377,6 +397,7 @@ ImprimeFaixas()
 
 listaP = lePontos("p_teste.txt")
 InterseccaoForcaBruta(listaP)
+InclusaoEmConvexo(listaP)
 
 
 try:
