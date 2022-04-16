@@ -19,11 +19,13 @@
 # ***********************************************************************************
 
 #from sys import ps1
+from re import A
 from typing import List
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from Poligonos import *
+import time
 
 # ***********************************************************************************
 Mapa = Polygon()
@@ -34,6 +36,8 @@ Min = Ponto()
 Max = Ponto()
 PontoClicado = Ponto()
 
+tuplaMapa = []
+tuplaConvexHull = []
 
 class Faixa:
     
@@ -137,14 +141,11 @@ def auxConvexHull(ref, final, vetorBase):
 # ***********************************************************************************
 import random
 def GeraPontos(qtd):
-    file = open(f'Pontos_{qtd}.txt', 'w')
-    qtdDigitosX = len(str(Max.x))
-    qtdDigitosY = len(str(Max.y))
+    file = open(f'Pontos_{qtd}.txt', 'w+')
     
     for i in range(qtd):
-        randomX = random.randint(0, int('9' *qtdDigitosX))
-        randomY = random.randint(0, int('9' *qtdDigitosY))
-
+        randomX = round(random.uniform(Min.x, Max.x), 2) # .uniform gera numeros com ponto fluturante
+        randomY = round(random.uniform(Min.y, Max.y), 2)
         file.write(f'{randomX} {randomY}\n')
 
     file.close() 
@@ -155,18 +156,21 @@ def lePontos(filePath) -> List[Ponto]:
     listaDePontos = []
     for line in file:
         values = line.split(' ')
-        ponto = Ponto(int(values[0]), int(values[1]), 0)
+        ponto = Ponto(float(values[0]), float(values[1]), 0)
+        
         listaDePontos.append(ponto)
     return listaDePontos
 
 # ***********************************************************************************
 def InterseccaoForcaBruta(listaDePontos):
+    contHaInterseccao = 0
     for pontoDir in listaDePontos:
         pontoEsq = pontoDir + Ponto(-1,0) * 100
         contInterseccoes = 0
         for n in range(Mapa.getNVertices()):
             verticeInicial, verticeFinal = Mapa.getAresta(n)
             interseccao = HaInterseccao(pontoDir, pontoEsq, verticeInicial, verticeFinal)
+            contHaInterseccao+=1
             if (interseccao):
                 # interseccao no vertice: como percorre em sentido horário, a interseccao acontece no final da prim aresta. 
                 # Em caso do vertice ser o max/min local -> conta 2 interseccoes, uma em cada aresta (pq ele entrou e saiu, ou saiu e entrou)
@@ -180,14 +184,20 @@ def InterseccaoForcaBruta(listaDePontos):
                         contInterseccoes -=1
                    
                 contInterseccoes+=1
-        pontoDir.imprime("O ponto")
         dentro = False if contInterseccoes%2 == 0 else True
-        print("esta dentro do poli?", dentro) 
-        print("quantidade de interseccoes: ", contInterseccoes)
+        tuplaMapa.append((dentro, pontoDir))
+
+        # pontoDir.imprime("O ponto")
+        # print("esta dentro do poli?", dentro) 
+        # print("quantidade de interseccoes: ", contInterseccoes)
+    return contHaInterseccao
+
+
 # ***********************************************************************************
 def InclusaoEmConvexo(listaDePontos):
     # OBS: a ordem das arestas no convex hull esta em sentido anti horario (do Mapa esta em sentido horario)
     # por estar em sentido anti-horario, quando percorremos o convexhull pelas arestas, consideramos que pontos a direita estao fora do poligono
+    contProdVetorial = 0
     for ponto in listaDePontos:
         dentro = True
         for n in range(ConvexHull.getNVertices()):
@@ -195,23 +205,32 @@ def InclusaoEmConvexo(listaDePontos):
             vetorCH = CalculaVetor(verticeInicial, verticeFinal)
             vetorPonto = CalculaVetor(verticeInicial, ponto)
             vetorResultante = ProdVetorial(vetorCH, vetorPonto)
+            contProdVetorial+=1
             if vetorResultante.z < 0:
                 dentro = False
                 break
-        ponto.imprime("O ponto")
-        print("esta dentro do convexhull?", dentro)
+        # ponto.imprime("O ponto")
+        # print("esta dentro do convexhull?", dentro)
+        # print("ContProdVetorial:", contProdVetorial)
+        tuplaConvexHull.append((dentro, ponto))
+    return contProdVetorial
 
 # ***********************************************************************************
 def InclusaoFaixaPorForcaBruta(listaDePontos):
+    contHaInterseccao = 0
     for ponto in listaDePontos:
         pontoEsq = ponto+ Ponto(-1,0) * 100
-        numFaixa = (ponto.y // EspacoDividido.intervalo) +1
+        numFaixa = int((ponto.y/ EspacoDividido.intervalo)) +1
+
+    
         print("Faixa: ", numFaixa)
+        print("todas faixas: ", EspacoDividido.TodasAsFaixas)
         contInterseccoes = 0
         for numAresta in EspacoDividido.getFaixa(numFaixa).ArestasNaFaixa:
             # print("Aresta: ", numAresta)
             verticeInicial, verticeFinal = Mapa.getAresta(numAresta)
             interseccao = HaInterseccao(ponto, pontoEsq, verticeInicial, verticeFinal)
+            contHaInterseccao +=1
             if (interseccao):
                 # interseccao no vertice: como percorre em sentido horário, a interseccao acontece no final da prim aresta. 
                 # Em caso do vertice ser o max/min local -> conta 2 interseccoes, uma em cada aresta (pq ele entrou e saiu, ou saiu e entrou)
@@ -225,10 +244,12 @@ def InclusaoFaixaPorForcaBruta(listaDePontos):
                         contInterseccoes -=1
                    
                 contInterseccoes+=1           
-        ponto.imprime("O ponto")
+        # ponto.imprime("O ponto")
         dentro = False if contInterseccoes%2 == 0 else True
-        print("esta dentro do poli?", dentro) 
-        # print("quantidade de interseccoes: ", contInterseccoes)
+        # print("esta dentro do poli?", dentro) 
+        # # print("quantidade de interseccoes: ", contInterseccoes)
+        # print("contHaInterseccao:", contHaInterseccao)
+    return contHaInterseccao
 
 # ***********************************************************************************
 def DesenhaLinha (P1, P2):
@@ -255,10 +276,10 @@ def display():
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
-    glColor3f(1.0, 1.0, 0.0)
+    glColor3f(0, 0, 1.0)
     Mapa.desenhaPoligono()
 
-    glColor3f(0, 0, 1.0)
+    glColor3f(1, 1.0, 0)
     ConvexHull.desenhaVertices()
     ConvexHull.desenhaPoligono()
 
@@ -270,39 +291,30 @@ def display():
     intervalo = (int) (Max.y-Min.y)//len(EspacoDividido.TodasAsFaixas)
     # desenha faixas
     for i in range(miny,maxy+1,intervalo):
-        if(i==miny):
-            glColor3f(0,0,1)
-        else:
-            glColor3f(1,0,1)
-
+        glColor3f(1,0,1)
         Pinicial = Ponto(Min.x,i)
         Pfinal = Ponto(Max.x,i)
         DesenhaLinha(Pinicial,Pfinal)
     
-    Esq = Ponto(0,0)
-    Dir = Ponto (-1,0)
-    #Dir.imprime("Dir:")
-
-    # Calcula o ponto da esquerda
-    #Esq.x = PontoClicado.x + Dir.x * 100
-    #Esq.y = PontoClicado.y + Dir.y * 100
-    Esq = PontoClicado + Dir * 100
-
-    # desenha linha horizontal
-    glColor3f(0,1,0) # R, G, B  [0..1]
-    DesenhaLinha(PontoClicado, Esq)
-    #Esq.imprime("Esq")
     
-    #F = CalculaFaixa(PontoClicado);
+    # desenha pontos de acordo com a inclusao no poligno de exemplo e no convex hull
+    for index, (dentroM, ponto) in enumerate(tuplaMapa):
+        dentroCH, ponto = tuplaConvexHull[index]
+        
+        glPointSize(5)
+        glBegin(GL_POINTS)
+        if dentroCH:
+            if dentroM:
+                glColor3f(0,0,1)
+                glVertex3f(ponto.x,ponto.y,ponto.z)
+            else:
+                glColor3f(1,1,0)
+                glVertex3f(ponto.x,ponto.y,ponto.z)
+        else:
+            glColor3f(1,0,0) # R, G, B  [0..1]
+            glVertex3f(ponto.x,ponto.y,ponto.z)
+        glEnd()
 
-    glColor3f(1,0,0) # R, G, B  [0..1]
-    # Testa a interseccao da linha horizontal com cada aresta do poligono
-    # Qdo ocorrer interseccao, pinta a aresta em vermelho
-    for i in range(Mapa.getNVertices()):
-        P1, P2 = Mapa.getAresta(i)
-        #if(PassaPelaFaixa(i,F))
-        if HaInterseccao(PontoClicado,Esq, P1, P2):
-            Mapa.desenhaAresta(i)
 
     #Mapa.desenhaVertices()
     glutSwapBuffers()
@@ -321,7 +333,7 @@ def keyboard(*args):
     if args[0] == b'p':
         Mapa.imprimeVertices()
     if args[0] == b'a':
-        Mapa.LePontosDeArquivo("PoligonoDeTeste.txt")
+        Mapa.LePontosDeArquivo("EstadoRS.txt")
     if args[0] == b'1':
         P1, P2 = Mapa.getAresta(9)
         P1.imprime()
@@ -378,9 +390,13 @@ def mouseMove(x: int, y: int):
 # Programa Principal
 # ***********************************************************************************
 
-GeraPontos(20)
 
 Min, Max = Mapa.LePontosDeArquivo("PoligonoDeTeste.txt")
+
+GeraPontos(200)
+# GeraPontos(2001)
+# GeraPontos(20001)
+
 
 Min.x -= 1
 Min.y -= 1
@@ -408,16 +424,25 @@ EspacoDividido.CriaFaixas(10)
 P1 = Ponto()
 P2 = Ponto()
 
+
+print("max:", Max.y)
+print("min:", Min.y)
+print(abs(abs(Max.y)-abs(Min.y)))
+
+
 inicio = 0
 fim = 0
-intervalo = (int) (Max.y-Min.y)//len(EspacoDividido.TodasAsFaixas)
+intervalo = (abs(abs(Max.y)-abs(Min.y)))/len(EspacoDividido.TodasAsFaixas)
 EspacoDividido.SetIntervalo(intervalo)
-
+print("Intervalo", intervalo)
 for i in range(Mapa.getNVertices()):
     P1,P2 = Mapa.getAresta(i)
 
-    inicio = (int) (P1.y//intervalo)
-    fim = (int) (P2.y//intervalo)
+    inicio = int(P1.y/intervalo)
+    fim = int(P2.y/intervalo)
+
+    print("inicio:", inicio)
+    print("fim:", fim)
 
     if(fim<inicio):
         aux = inicio
@@ -426,16 +451,35 @@ for i in range(Mapa.getNVertices()):
     
     for j in range(inicio,fim+1):
         EspacoDividido.CadastraArestaNaFaixa(j,i)
-        print("Aresta",i,"cadastrada na Faixa",j)
 
-ImprimeFaixas()
+# ImprimeFaixas()
 # ------------------
 
-listaP = lePontos("p_teste.txt")
-InterseccaoForcaBruta(listaP)
-InclusaoEmConvexo(listaP)
+listaP = lePontos("Pontos_20.txt")
+
+# algoritmos
+timeInit= time.time()
+contadorHaInterseccao = InterseccaoForcaBruta(listaP)
+timeFinal= time.time() - timeInit
+print(f'TEMPO DE EXECUÇÃO ALGORITMO FORCA BRUTA {round(timeFinal, 6)} ms')
+print(f'Funcao HaInterseccao foi chamada {contadorHaInterseccao} vezes')
+
+print("\n ")
+
+timeInit= time.time()
+contadorProdVetorial = InclusaoEmConvexo(listaP)
+timeFinal= time.time() - timeInit
+print(f'TEMPO DE EXECUÇÃO ALGORITMO DE INCLUSAO EM CONVEXO {round(timeFinal, 6)} ms')
+print(f'Funcao ProdVetorial foi chamada {contadorProdVetorial} vezes')
 InclusaoFaixaPorForcaBruta(listaP)
 
+print("\n ")
+
+timeInit= time.time()
+contadorHaInterseccao = InclusaoFaixaPorForcaBruta(listaP)
+timeFinal= time.time() - timeInit
+print(f'TEMPO DE EXECUÇÃO ALGORITMO FORCA BRUTA CONSIDERANDO FAIXAS {round(timeFinal, 8)} ms')
+print(f'Funcao HaInterseccao foi chamada {contadorHaInterseccao} vezes')
 try:
     glutMainLoop()
 except SystemExit:
