@@ -59,12 +59,19 @@ class ConjuntoDeFaixas:
     def __init__(self):
         self.TodasAsFaixas =[]
         self.intervalo = 0
+        self.inicioFaixas = []
 
     def SetIntervalo(self, intervalo):
         self.intervalo = intervalo 
 
     def GetIntervalo(self):
         return self.intervalo
+    
+    def SetInicioFaixas(self, inicioFaixas):
+        self.inicioFaixas = inicioFaixas 
+
+    def GetInicioFaixas(self):
+        return self.inicioFaixas
 
     def CadastraArestaNaFaixa(self, f, a):
         self.TodasAsFaixas[f].CadastraAresta(a)
@@ -198,17 +205,23 @@ def InclusaoEmConvexo(listaDePontos):
     # OBS: a ordem das arestas no convex hull esta em sentido anti horario (do Mapa esta em sentido horario)
     # por estar em sentido anti-horario, quando percorremos o convexhull pelas arestas, consideramos que pontos a direita estao fora do poligono
     contProdVetorial = 0
+    vetorResultante = Ponto()
     for ponto in listaDePontos:
+        print("________________________________________________________________")
         dentro = True
         for n in range(ConvexHull.getNVertices()):
             verticeInicial, verticeFinal = ConvexHull.getAresta(n)
             vetorCH = CalculaVetor(verticeInicial, verticeFinal)
             vetorPonto = CalculaVetor(verticeInicial, ponto)
             vetorResultante = ProdVetorial(vetorCH, vetorPonto)
+            
             contProdVetorial+=1
-            if vetorResultante.z < 0:
+            if (vetorResultante.z < 0.0):
                 dentro = False
                 break
+
+        vetorResultante.imprime()
+        print("....", vetorResultante.z <0, "vs", dentro)
         # ponto.imprime("O ponto")
         # print("esta dentro do convexhull?", dentro)
         # print("ContProdVetorial:", contProdVetorial)
@@ -220,12 +233,18 @@ def InclusaoFaixaPorForcaBruta(listaDePontos):
     contHaInterseccao = 0
     for ponto in listaDePontos:
         pontoEsq = ponto+ Ponto(-1,0) * 100
-        numFaixa = int((ponto.y/ EspacoDividido.intervalo)) +1
 
-    
-        print("Faixa: ", numFaixa)
-        print("todas faixas: ", EspacoDividido.TodasAsFaixas)
+        #descobrindo a faixa em que o ponto se encontra
+        numFaixa = 100
+        for indexFaixa, inicioFaixa in enumerate(EspacoDividido.GetInicioFaixas()):
+            if len(EspacoDividido.GetInicioFaixas()) == indexFaixa+1:
+                if ponto.y >= inicioFaixa: # maior ou igual?
+                    numFaixa = indexFaixa
+            elif ponto.y >= inicioFaixa and ponto.y < EspacoDividido.GetInicioFaixas()[indexFaixa+1]: # maior ou igual?
+                numFaixa = indexFaixa
+
         contInterseccoes = 0
+    
         for numAresta in EspacoDividido.getFaixa(numFaixa).ArestasNaFaixa:
             # print("Aresta: ", numAresta)
             verticeInicial, verticeFinal = Mapa.getAresta(numAresta)
@@ -286,21 +305,17 @@ def display():
     glColor3f(1.0, 0.0, 0.0)
     
 
-    miny = (int) (Min.y)
-    maxy = (int) (Max.y)
-    intervalo = (int) (Max.y-Min.y)//len(EspacoDividido.TodasAsFaixas)
     # desenha faixas
-    for i in range(miny,maxy+1,intervalo):
+    for y in EspacoDividido.GetInicioFaixas(): 
         glColor3f(1,0,1)
-        Pinicial = Ponto(Min.x,i)
-        Pfinal = Ponto(Max.x,i)
+        Pinicial = Ponto(Min.x,y)
+        Pfinal = Ponto(Max.x,y)
         DesenhaLinha(Pinicial,Pfinal)
     
     
     # desenha pontos de acordo com a inclusao no poligno de exemplo e no convex hull
     for index, (dentroM, ponto) in enumerate(tuplaMapa):
-        dentroCH, ponto = tuplaConvexHull[index]
-        
+        (dentroCH, ponto) = tuplaConvexHull[index]
         glPointSize(5)
         glBegin(GL_POINTS)
         if dentroCH:
@@ -391,9 +406,9 @@ def mouseMove(x: int, y: int):
 # ***********************************************************************************
 
 
-Min, Max = Mapa.LePontosDeArquivo("PoligonoDeTeste.txt")
+Min, Max = Mapa.LePontosDeArquivo("EstadoRS.txt")
 
-GeraPontos(200)
+GeraPontos(20)
 # GeraPontos(2001)
 # GeraPontos(20001)
 
@@ -424,33 +439,31 @@ EspacoDividido.CriaFaixas(10)
 P1 = Ponto()
 P2 = Ponto()
 
-
-print("max:", Max.y)
-print("min:", Min.y)
-print(abs(abs(Max.y)-abs(Min.y)))
-
-
-inicio = 0
-fim = 0
-intervalo = (abs(abs(Max.y)-abs(Min.y)))/len(EspacoDividido.TodasAsFaixas)
+import numpy as np
+intervalo = (abs((Max.y)-(Min.y)))/len(EspacoDividido.TodasAsFaixas)
 EspacoDividido.SetIntervalo(intervalo)
-print("Intervalo", intervalo)
+
+faixasInicio = np.arange(Min.y, Max.y, intervalo)
+faixasInicio = np.append(faixasInicio, Max.y)
+EspacoDividido.SetInicioFaixas(faixasInicio)
+
 for i in range(Mapa.getNVertices()):
     P1,P2 = Mapa.getAresta(i)
 
-    inicio = int(P1.y/intervalo)
-    fim = int(P2.y/intervalo)
-
-    print("inicio:", inicio)
-    print("fim:", fim)
+    inicio = (P1.y/intervalo)
+    fim = (P2.y /intervalo)
 
     if(fim<inicio):
         aux = inicio
         inicio = fim
         fim = aux
     
-    for j in range(inicio,fim+1):
-        EspacoDividido.CadastraArestaNaFaixa(j,i)
+    for numFaixa, inicioFaixa in enumerate(EspacoDividido.GetInicioFaixas()):
+        if len(EspacoDividido.GetInicioFaixas()) == numFaixa+1:
+            if inicio >= inicioFaixa: 
+                EspacoDividido.CadastraArestaNaFaixa(numFaixa, i)
+        elif inicio >= inicioFaixa and fim < EspacoDividido.GetInicioFaixas()[numFaixa+1]: 
+            EspacoDividido.CadastraArestaNaFaixa(numFaixa, i)
 
 # ImprimeFaixas()
 # ------------------
@@ -471,7 +484,6 @@ contadorProdVetorial = InclusaoEmConvexo(listaP)
 timeFinal= time.time() - timeInit
 print(f'TEMPO DE EXECUÇÃO ALGORITMO DE INCLUSAO EM CONVEXO {round(timeFinal, 6)} ms')
 print(f'Funcao ProdVetorial foi chamada {contadorProdVetorial} vezes')
-InclusaoFaixaPorForcaBruta(listaP)
 
 print("\n ")
 
@@ -480,6 +492,9 @@ contadorHaInterseccao = InclusaoFaixaPorForcaBruta(listaP)
 timeFinal= time.time() - timeInit
 print(f'TEMPO DE EXECUÇÃO ALGORITMO FORCA BRUTA CONSIDERANDO FAIXAS {round(timeFinal, 8)} ms')
 print(f'Funcao HaInterseccao foi chamada {contadorHaInterseccao} vezes')
+
+
+
 try:
     glutMainLoop()
 except SystemExit:
