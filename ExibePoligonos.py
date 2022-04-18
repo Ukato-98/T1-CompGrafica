@@ -19,6 +19,7 @@
 # ***********************************************************************************
 
 #from sys import ps1
+from ast import Num
 from re import A
 from typing import List
 from OpenGL.GL import *
@@ -92,8 +93,9 @@ def ImprimeFaixas():
         print("Faixa:",i,":")
         f = Faixa()
         f = EspacoDividido.getFaixa(i)
-        for a in range(f.getNroDeArestas()):
-            print(f.getAresta(a)," ")
+        # for a in range(f.getNroDeArestas()):
+        #     print(f.getAresta(a)," ")
+        print("nro de arestas ", f.getNroDeArestas())
         print("\n")
 
 # ***********************************************************************************
@@ -467,8 +469,11 @@ EspacoDividido.SetInicioFaixas(faixasInicio)
 for i in range(Mapa.getNVertices()):
     P1,P2 = Mapa.getAresta(i)
 
-    inicioFaixa = (P1.y/intervalo)
-    fimFaixa = (P2.y /intervalo)
+    print("p1.y", P1.y)
+    print("p2.y", P2.y)
+
+    inicioFaixa = P1.y
+    fimFaixa = P2.y 
 
 
     if(fimFaixa<inicioFaixa):
@@ -478,12 +483,12 @@ for i in range(Mapa.getNVertices()):
     print(EspacoDividido.GetInicioFaixas())
     print(inicioFaixa) 
     print(fimFaixa)
-    for qtdFaixas in range(math.floor((fimFaixa - inicioFaixa)/intervalo)):
-        aux = inicioFaixa
-        faixa = aux%intervalo
-        aux += intervalo
-        print("Faixaa:", faixa )
-        EspacoDividido.CadastraArestaNaFaixa(faixa, i)
+    # for qtdFaixas in range(math.floor((fimFaixa - inicioFaixa)/intervalo)):
+    #     aux = inicioFaixa
+    #     faixa = aux%intervalo
+    #     aux += intervalo
+    #     print("Faixaa:", faixa )
+    #     EspacoDividido.CadastraArestaNaFaixa(faixa, i)
 
 
     # for numFaixa, limInferior in enumerate(EspacoDividido.GetInicioFaixas()):
@@ -491,8 +496,37 @@ for i in range(Mapa.getNVertices()):
     #         if inicioFaixa>= limInferior and inicioFaixa < EspacoDividido.GetInicioFaixas()[numFaixa+1]:
     #             EspacoDividido.CadastraArestaNaFaixa(numFaixa, i)
 
-    # for faixaNum in len(EspacoDividido.TodasAsFaixas):
-    #     if 
+
+    nroFaixaInicio = -10
+    for faixaNum in range(10):
+        limites = EspacoDividido.GetInicioFaixas()
+        if inicioFaixa >= limites[faixaNum] and inicioFaixa < limites[faixaNum+1]:
+            nroFaixaInicio = faixaNum
+            break
+    print("nroFaixa inicio", nroFaixaInicio)
+    nroFaixaFim = -10
+    for faixaNum in range(10):
+        limites = EspacoDividido.GetInicioFaixas()
+        if fimFaixa >= limites[faixaNum] and fimFaixa <= limites[faixaNum+1]:
+            nroFaixaFim = faixaNum
+            break
+    print("nroFaixa fim", nroFaixaFim)
+
+    
+    for f in range (nroFaixaInicio, nroFaixaFim+1):
+        EspacoDividido.CadastraArestaNaFaixa(f, i)
+
+        # limites = EspacoDividido.GetInicioFaixas()
+        # print(inicioFaixa)
+        # print(limites[faixaNum])
+        # if inicioFaixa >= limites[faixaNum] and inicioFaixa < limites[faixaNum+1]:
+        #     EspacoDividido.CadastraArestaNaFaixa(faixaNum, i)
+        # if fimFaixa
+            # if inicioFaixa >= limites[faixaNum+1]:
+            #     print()
+            # else:
+            #     EspacoDividido.CadastraArestaNaFaixa(faixaNum, i)
+
 
 
 
