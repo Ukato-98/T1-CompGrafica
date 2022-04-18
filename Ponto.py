@@ -32,6 +32,7 @@ class Ponto:
     def imprime(self, msg=None):
         if msg is not None:
             print (msg, self.x, self.y, self.z)
+#            print(f"({round(self.x,4)}, {round(self.y,4)})")
         else:
             print (self.x, self.y, self.z)
 
@@ -72,7 +73,7 @@ def Modulo (v1: Ponto) -> float:
 
 def CalculaAngulo(v1: Ponto, v2: Ponto) -> float:
     x = ProdEscalar(v1,v2) / (Modulo(v1)*Modulo(v2))
-    x = round(x,2)
+    # x = round(x,2)
     return math.degrees(math.acos(x))
 
 # calculo eh ponto da seta - ponto da "base" do vetor
